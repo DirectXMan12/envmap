@@ -69,16 +69,14 @@ func FromTypeDefinition(d convert.TypeDefinition) ast.Expr {
 		return FromFuncTypeDefinition(typed)
 	case convert.MapTypeDefinition:
 		return FromMapTypeDefinition(typed)
-	case convert.ArrayTypeDefinition:
-		return FromArrayTypeDefinition(typed)
 	case convert.ChanTypeDefinition:
 		return FromChanTypeDefinition(typed)
 	case convert.PointerTypeDefinition:
 		return FromPointerTypeDefinition(typed)
 	case convert.SplatTypeDefinition:
-		// NB: this *must* be after array type definition, so that it doesn't
-		// accidentally catch, since splat is just a subset of array
 		return FromSplatTypeDefinition(typed)
+	case convert.ArrayTypeDefinition:
+		return FromArrayTypeDefinition(typed)
 	case convert.QualifiedIdent:
 		return FromQualifiedIdent(typed)
 	case convert.Ident:
@@ -150,14 +148,21 @@ func FromArrayTypeDefinition(d convert.ArrayTypeDefinition) ast.Expr {
 	res := &ast.ArrayType{
 		Elt: FromTypeDefinition(d.ElemType()),
 	}
-	switch {
-	case d.AutoLength():
+	maybeLen := d.Length()
+	if maybeLen == nil {
+		// it's just a slice
+		return res
+	}
+
+	if *maybeLen == convert.AutoLength {
+		// auto length is `[...]T`
 		res.Len = &ast.Ellipsis{}
-	case !d.IsSlice():
-		res.Len = &ast.BasicLit{
-			Kind: token.INT,
-			Value: fmt.Sprintf("%d", d.Length()),
-		}
+		return res
+	}
+	
+	res.Len = &ast.BasicLit{
+		Kind: token.INT,
+		Value: fmt.Sprintf("%d", *maybeLen),
 	}
 
 	return res

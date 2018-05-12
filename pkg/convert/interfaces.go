@@ -4,6 +4,12 @@ import (
 	"reflect"
 )
 
+const (
+	// it's illegal for array lengths to be negative,
+	// so this is fine, since Go doesn't have tagged unions.
+	AutoLength = -1
+)
+
 // AsRawAST knows how to convert itself back into some go AST form
 type AsRawAST interface {
 	// ToRaw converts this back into an appropriate Go AST object.
@@ -76,11 +82,19 @@ type MapTypeDefinition interface {
 	KeyType() TypeDefinition
 	ValueType() TypeDefinition
 }
+
 type ArrayTypeDefinition interface {
-	IsSlice() bool
-	AutoLength() bool
-	Length() int
 	ElemType() TypeDefinition
+	// Length is the length of the array.
+	// A nil length length represents a slice,
+	// and a length of AutoLength represents `[...]T`.
+	Length() *int
+}
+type SplatTypeDefinition interface {
+	ElemType() TypeDefinition
+	// IsSplat indicates that this is a splat, instead
+	// of a normal slice.
+	IsSplat() struct{}
 }
 type ChanTypeDefinition interface {
 	ValueType() TypeDefinition
@@ -88,7 +102,4 @@ type ChanTypeDefinition interface {
 }
 type PointerTypeDefinition interface {
 	ReferentType() TypeDefinition
-}
-type SplatTypeDefinition interface {
-	ElemType() TypeDefinition
 }

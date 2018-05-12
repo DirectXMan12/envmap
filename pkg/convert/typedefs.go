@@ -196,6 +196,9 @@ type splatTypeDefinition struct {
 func (d *splatTypeDefinition) ElemType() TypeDefinition {
 	return exprToTypeDefinition(d.typ.Elt)
 }
+func (d *splatTypeDefinition) IsSplat() struct{} {
+	return struct{}{}
+}
 
 type field struct {
 	field *ast.Field
