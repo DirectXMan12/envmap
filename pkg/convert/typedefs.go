@@ -57,16 +57,16 @@ func exprToTypeDefinition(expr ast.Expr) TypeDefinition {
 			typ: typed,
 		}
 	case *ast.Ident:
-		return UnqualifiedIdent{Name: typed.Name}
+		return unqualifiedIdent(typed.Name)
 	case *ast.ParenExpr:
 		// ParenExpr is just parens around a normal type
 		return exprToTypeDefinition(typed.X)
 	case *ast.SelectorExpr:
 		// SelectorExpr is just a qualified name
 		// TODO: can this be anything other than an ident, here?
-		return QualifiedIdent{
-			Package: typed.X.(*ast.Ident).Name,
-			Name: typed.Sel.Name,
+		return qualifiedIdent{
+			packageName: typed.X.(*ast.Ident).Name,
+			Ident: unqualifiedIdent(typed.Sel.Name),
 		}
 	case *ast.StarExpr:
 		// StarExpr is just a pointer to another type
@@ -214,7 +214,7 @@ func (f *field) Name() Ident {
 		return Anonymous
 	}
 
-	return UnqualifiedIdent{Name: f.name.Name}
+	return unqualifiedIdent(f.name.Name)
 }
 
 // Type returns the type of the field.

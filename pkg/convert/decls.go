@@ -5,47 +5,6 @@ import (
 	"go/token"
 )
 
-type anonIdent struct{}
-func (i anonIdent) Unqualified() string { return "" }
-func (i anonIdent) Qualifier() string { return "" }
-
-type UnqualifiedIdent struct {
-	Name string
-}
-func (i UnqualifiedIdent) Unqualified() string {
-	return i.Name
-}
-func (i UnqualifiedIdent) Qualifier() string {
-	return ""
-}
-func (i UnqualifiedIdent) ToRawNode() interface{} {
-	return &ast.Ident{
-		Name: i.Name,
-	}
-}
-
-type QualifiedIdent struct {
-	Package string
-	Name string
-}
-
-func (i QualifiedIdent) Unqualified() string {
-	return i.Name
-}
-func (i QualifiedIdent) Qualifier() string {
-	return i.Package
-}
-func (i QualifiedIdent) ToRawNode() interface{} {
-	return &ast.SelectorExpr{
-		X: &ast.Ident{Name: i.Package},
-		Sel: &ast.Ident{Name: i.Name},
-	}
-}
-
-var (
-	Anonymous = anonIdent{}
-)
-
 // extractCommentGroup extracts the actual contents of a
 // comment group.  It will safely deal with nil comment groups.
 // TODO: switch to just using cg.Text()?
@@ -99,7 +58,7 @@ func (d *typeDeclaration) Doc() []string {
 
 // Name returns the name of the type
 func (d *typeDeclaration) Name() Ident {
-	return UnqualifiedIdent{Name: d.spec.Name.Name}
+	return unqualifiedIdent(d.spec.Name.Name)
 }
 
 // Type returns the actual underlying type.

@@ -32,7 +32,7 @@ func newCommentGroup(strs ...string) *ast.CommentGroup {
 
 func declIdent(i convert.Ident) *ast.Ident {
 	return &ast.Ident{
-		Name: i.Unqualified(),
+		Name: i.Name(),
 	}
 }
 
@@ -79,7 +79,10 @@ func FromTypeDefinition(d convert.TypeDefinition) ast.Expr {
 		// NB: this *must* be after array type definition, so that it doesn't
 		// accidentally catch, since splat is just a subset of array
 		return FromSplatTypeDefinition(typed)
+	case convert.QualifiedIdent:
+		return FromQualifiedIdent(typed)
 	case convert.Ident:
+		// NB: this *must* be after qualified ident, for similar reasons to array/splat
 		return FromIdent(typed)
 	default:
 		// TODO: return error instead of panic
@@ -186,18 +189,18 @@ func FromSplatTypeDefinition(d convert.SplatTypeDefinition) ast.Expr {
 	}
 }
 
-func FromIdent(i convert.Ident) ast.Expr {
+func FromIdent(i convert.Ident) *ast.Ident {
 	// TODO: we already have this code in ToRawNode,
 	// can we find a good way not to duplicate it?
 	if i == convert.Anonymous {
 		return nil
 	}
-	pkg := i.Qualifier()
-	if pkg != "" {
-		return &ast.SelectorExpr{
-			X: &ast.Ident{Name: pkg},
-			Sel: &ast.Ident{Name: i.Unqualified()},
-		}
+	return &ast.Ident{Name: i.Name()}
+}
+
+func FromQualifiedIdent(i convert.QualifiedIdent) ast.Expr {
+	return &ast.SelectorExpr{
+		X: &ast.Ident{Name: i.PackageName()},
+		Sel: &ast.Ident{Name: i.Name()},
 	}
-	return &ast.Ident{Name: i.Unqualified()}
 }

@@ -34,7 +34,7 @@ type autoGetters struct {
 
 func (g *autoGetters) Doc() []string { return nil }
 func (g *autoGetters) Name() convert.Ident {
-	return convert.UnqualifiedIdent{Name: toPubName(g.structName)}
+	return convert.NewIdent(toPubName(g.structName))
 }
 func (g *autoGetters) IsAlias() bool { return false }
 func (g *autoGetters) Type() convert.TypeDefinition { return g }
@@ -56,7 +56,7 @@ type getterMethod struct {
 func (g *getterMethod) Doc() []string { return nil }
 func (g *getterMethod) Name() convert.Ident {
 	if g.name == "" { return convert.Anonymous }
-	return convert.UnqualifiedIdent{Name: toPubName(g.name)}
+	return convert.NewIdent(toPubName(g.name))
 }
 func (g *getterMethod) Type() convert.TypeDefinition { return g.typ }
 func (g *getterMethod) Tag() reflect.StructTag { return reflect.StructTag("") }
@@ -103,10 +103,10 @@ func main() {
 			}
 
 			getterGen := &autoGetters{
-				structName: typeDecl.Name().Unqualified(),
+				structName: typeDecl.Name().Name(),
 			}
 			for _, field := range structDefn.Fields() {
-				getterGen.fieldNames = append(getterGen.fieldNames, field.Name().Unqualified())
+				getterGen.fieldNames = append(getterGen.fieldNames, field.Name().Name())
 				getterGen.fieldTypes = append(getterGen.fieldTypes, field.Type())
 			}
 

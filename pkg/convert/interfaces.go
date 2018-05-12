@@ -25,14 +25,17 @@ type TypeDeclaration interface {
 	Type() TypeDefinition
 }
 
-// Ident represents some sort of identifier
-// (or potentially the lack thereof)
-// TODO: capture underlying object as well for convinience?
-// TODO: better method names, or get rid of the interface entirely
+// Ident is a bare identifier
 type Ident interface {
-	Qualifier() string
-	Unqualified() string
+	Name() string
 }
+
+// QualifiedIdent is an identifier qualified by a package name
+type QualifiedIdent interface {
+	Ident
+	PackageName() string
+}
+// TODO: capture underlying object as well for convinience?
 
 type Doced interface {
 	Doc() []string
@@ -56,6 +59,7 @@ type Field interface {
 // - PointerTypeDefinition
 // - SplatTypeDefinition
 // - Ident
+// - QualifiedIdent
 type TypeDefinition interface{}
 
 type StructTypeDefinition interface {
