@@ -28,9 +28,10 @@ type TypeDeclaration interface {
 // Ident represents some sort of identifier
 // (or potentially the lack thereof)
 // TODO: capture underlying object as well for convinience?
+// TODO: better method names, or get rid of the interface entirely
 type Ident interface {
-	FullName() string
-	ShortName() string
+	Qualifier() string
+	Unqualified() string
 }
 
 type Doced interface {
@@ -41,7 +42,7 @@ type Field interface {
 	Doced
 	Name() Ident
 	Type() TypeDefinition
-	Tag () reflect.StructTag
+	Tag()  reflect.StructTag
 }
 
 // TypeDefinition represents some type in Go.
@@ -53,6 +54,7 @@ type Field interface {
 // - ArrayTypeDefinition (slices or arrays)
 // - ChanTypeDefinition
 // - PointerTypeDefinition
+// - SplatTypeDefinition
 // - Ident
 type TypeDefinition interface{}
 
@@ -72,13 +74,17 @@ type MapTypeDefinition interface {
 }
 type ArrayTypeDefinition interface {
 	IsSlice() bool
-	IsSplat() bool
+	AutoLength() bool
 	Length() int
+	ElemType() TypeDefinition
 }
 type ChanTypeDefinition interface {
 	ValueType() TypeDefinition
-	Directions (receive bool, send bool)
+	Directions() (receive bool, send bool)
 }
 type PointerTypeDefinition interface {
 	ReferentType() TypeDefinition
+}
+type SplatTypeDefinition interface {
+	ElemType() TypeDefinition
 }

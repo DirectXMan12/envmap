@@ -6,17 +6,17 @@ import (
 )
 
 type anonIdent struct{}
-func (i anonIdent) FullName() string { return "" }
-func (i anonIdent) ShortName() string { return "" }
+func (i anonIdent) Unqualified() string { return "" }
+func (i anonIdent) Qualifier() string { return "" }
 
 type UnqualifiedIdent struct {
 	Name string
 }
-func (i UnqualifiedIdent) FullName() string {
+func (i UnqualifiedIdent) Unqualified() string {
 	return i.Name
 }
-func (i UnqualifiedIdent) ShortName() string {
-	return i.Name
+func (i UnqualifiedIdent) Qualifier() string {
+	return ""
 }
 func (i UnqualifiedIdent) ToRawNode() interface{} {
 	return &ast.Ident{
@@ -29,11 +29,11 @@ type QualifiedIdent struct {
 	Name string
 }
 
-func (i QualifiedIdent) FullName() string {
-	return i.Package + "." + i.Name
-}
-func (i QualifiedIdent) ShortName() string {
+func (i QualifiedIdent) Unqualified() string {
 	return i.Name
+}
+func (i QualifiedIdent) Qualifier() string {
+	return i.Package
 }
 func (i QualifiedIdent) ToRawNode() interface{} {
 	return &ast.SelectorExpr{

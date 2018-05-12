@@ -70,12 +70,16 @@ func exprToTypeDefinition(expr ast.Expr) TypeDefinition {
 		}
 	case *ast.StarExpr:
 		// StarExpr is just a pointer to another type
-		return pointerTypeDefinition{
+		return &pointerTypeDefinition{
+			typ: typed,
+		}
+	case *ast.Ellipsis:
+		return &splatTypeDefinition{
 			typ: typed,
 		}
 	default:
 		// TODO: return error instead of panic
-		panic(fmt.Sprintf("unknown/invalid expression type %T", expr))
+		panic(fmt.Sprintf("unknown/invalid expression type %T -- %#v", expr))
 	}
 }
 
@@ -141,7 +145,7 @@ func (d *arrayTypeDefinition) IsSlice() bool {
 	return d.typ.Len == nil
 }
 
-func (d *arrayTypeDefinition) IsSplat() bool {
+func (d *arrayTypeDefinition) AutoLength() bool {
 	_, isEllipsis := d.typ.Len.(*ast.Ellipsis)
 	return isEllipsis
 }
@@ -183,6 +187,14 @@ func (d *pointerTypeDefinition) ReferentType() TypeDefinition {
 
 func (d *pointerTypeDefinition) ToRawNode() interface{} {
 	return d.typ
+}
+
+type splatTypeDefinition struct {
+	typ *ast.Ellipsis
+}
+
+func (d *splatTypeDefinition) ElemType() TypeDefinition {
+	return exprToTypeDefinition(d.typ.Elt)
 }
 
 type field struct {
