@@ -4,13 +4,16 @@ import (
 	"reflect"
 )
 
-const (
+//go:generate go run $GOPATH/src/github.com/directxman12/envmap/cmd/basicimpl/main.go -p=Node -o=../generate/basic/types.go $GOFILE
+
+var (
 	// it's illegal for array lengths to be negative,
 	// so this is fine, since Go doesn't have tagged unions.
 	AutoLength = -1
 )
 
 // AsRawAST knows how to convert itself back into some go AST form
+// +basicimpl:skip
 type AsRawAST interface {
 	// ToRaw converts this back into an appropriate Go AST object.
 	// The object in question is dependent on the given implementer.
@@ -31,18 +34,27 @@ type TypeDeclaration interface {
 	Type() TypeDefinition
 }
 
+// +basicimpl:skip
+type TypeIdent interface {
+	LocateType() TypeDefinition
+	Ident
+}
+
 // Ident is a bare identifier
+// +basicimpl:skip
 type Ident interface {
 	Name() string
 }
 
 // QualifiedIdent is an identifier qualified by a package name
+// +basicimpl:skip
 type QualifiedIdent interface {
 	Ident
 	PackageName() string
 }
 // TODO: capture underlying object as well for convinience?
 
+// +basicimpl:skip
 type Doced interface {
 	Doc() []string
 }
@@ -66,6 +78,7 @@ type Field interface {
 // - SplatTypeDefinition
 // - Ident
 // - QualifiedIdent
+// +basicimpl:skip
 type TypeDefinition interface{}
 
 type StructTypeDefinition interface {

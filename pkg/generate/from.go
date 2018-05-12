@@ -23,6 +23,8 @@ func newCommentGroup(strs ...string) *ast.CommentGroup {
 
 		comments[i] = &ast.Comment{
 			Text: rawComment,
+			// make sure decl docs appear before the `type` keyword
+			Slash: token.Pos(1), 
 		}
 	}
 	return &ast.CommentGroup{
@@ -53,10 +55,13 @@ func FromTypeDeclaration(d convert.TypeDeclaration) ast.Decl {
 		spec.Assign = token.Pos(1)
 	}
 	return &ast.GenDecl{
-		Doc: newCommentGroup(d.Doc()...),
 		Tok: token.TYPE,
+		// always put token later, so that we get docs before the keyword
+		TokPos: token.Pos(2),
 		Specs: []ast.Spec{spec},
+		Doc: newCommentGroup(d.Doc()...),
 	}
+
 }
 
 func FromTypeDefinition(d convert.TypeDefinition) ast.Expr {

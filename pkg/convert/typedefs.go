@@ -28,6 +28,18 @@ func fieldListToFields(l *ast.FieldList) []Field {
 	return res
 }
 
+func checkBackingTypeDecl(obj *ast.Object) ast.Expr {
+	if obj == nil {
+		return nil
+	}
+
+	typeSpec, isTypeSpec := obj.Decl.(*ast.TypeSpec)
+	if !isTypeSpec {
+		return nil
+	}
+	return typeSpec.Type
+}
+
 // exprToTypeDefinition converts an expression into one of the
 // type definition structs.
 func exprToTypeDefinition(expr ast.Expr) TypeDefinition {
@@ -57,13 +69,21 @@ func exprToTypeDefinition(expr ast.Expr) TypeDefinition {
 			typ: typed,
 		}
 	case *ast.Ident:
-		return unqualifiedIdent(typed.Name)
+		id := unqualifiedIdent(typed.Name)
+		typDecl := checkBackingTypeDecl(typed.Obj)
+		if typDecl != nil {
+			return typeIdent{
+				Ident: id,
+				typDecl: typDecl,
+			}
+		}
+		return id
 	case *ast.ParenExpr:
 		// ParenExpr is just parens around a normal type
 		return exprToTypeDefinition(typed.X)
 	case *ast.SelectorExpr:
 		// SelectorExpr is just a qualified name
-		// TODO: can this be anything other than an ident, here?
+		// TODO: allow qualified locatable idents?
 		return qualifiedIdent{
 			packageName: typed.X.(*ast.Ident).Name,
 			Ident: unqualifiedIdent(typed.Sel.Name),
@@ -150,8 +170,13 @@ func (d *arrayTypeDefinition) AutoLength() bool {
 	return isEllipsis
 }
 
-func (d *arrayTypeDefinition) Length() int {
-	// TODO: figure out how to implement this
+func (d *arrayTypeDefinition) Length() *int {
+	if d.typ.Len == nil {
+		return nil
+	}
+	if _, isEllipsis := d.typ.Len.(*ast.Ellipsis); isEllipsis {
+		return &AutoLength
+	}
 	panic("not implemented")
 }
 

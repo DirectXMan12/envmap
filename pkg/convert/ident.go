@@ -28,6 +28,15 @@ func (i qualifiedIdent) ToRawNode() interface{} {
 	}
 }
 
+type typeIdent struct {
+	Ident
+	typDecl ast.Expr
+}
+func (i typeIdent) LocateType() TypeDefinition {
+	// TODO: is this correct for things other than embeds?
+	return exprToTypeDefinition(i.typDecl)
+}
+
 var (
 	Anonymous = anonIdent{}
 )
