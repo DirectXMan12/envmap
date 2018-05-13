@@ -9,6 +9,9 @@ import (
 
 // fieldListToFields converts an ast.FieldList into a list Fields
 func fieldListToFields(l *ast.FieldList) []Field {
+	if l == nil {
+		return nil
+	}
 	var res []Field
 	for _, rawField := range l.List {
 		if rawField.Names == nil {

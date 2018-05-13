@@ -2,6 +2,7 @@ package convert
 
 import (
 	"reflect"
+	"go/ast"
 )
 
 //go:generate go run $GOPATH/src/github.com/directxman12/envmap/cmd/basicimpl/main.go -p=Node -o=../generate/basic/types.go $GOFILE
@@ -12,19 +13,20 @@ var (
 	AutoLength = -1
 )
 
-// AsRawAST knows how to convert itself back into some go AST form
-// +basicimpl:skip
-type AsRawAST interface {
-	// ToRaw converts this back into an appropriate Go AST object.
-	// The object in question is dependent on the given implementer.
-	// The object *may* (but is not guaranteed to) partially or wholly
-	// return existing AST nodes
-	ToRawNode() interface{}
-}
+// NB: any method which returns something from the "go/ast" package
+// may have its signature changed in the future.
+
+// Declarations
+
+// Declaration represents a go declaration.
+// It can be a:
+// - TypeDeclaration
+// - ValueDeclaration
+// - FuncDeclaration
+type Declaration interface{}
 
 // TypeDeclaration represents a declaration of a type in the AST.
 type TypeDeclaration interface {
-	Doced
 	Name() Ident
 	// IsAlias determines whether or not this declaration is an alias (i.e.
 	// defined as `type name = ident`), or or actually defines a distinct type
@@ -34,37 +36,26 @@ type TypeDeclaration interface {
 	Type() TypeDefinition
 }
 
-// +basicimpl:skip
-type TypeIdent interface {
-	LocateType() TypeDefinition
-	Ident
-}
+// We skip import declaratations because we get those elsewhere
 
-// Ident is a bare identifier
-// +basicimpl:skip
-type Ident interface {
-	Name() string
-}
-
-// QualifiedIdent is an identifier qualified by a package name
-// +basicimpl:skip
-type QualifiedIdent interface {
-	Ident
-	PackageName() string
-}
-// TODO: capture underlying object as well for convinience?
-
-// +basicimpl:skip
-type Doced interface {
-	Doc() []string
-}
-
-type Field interface {
-	Doced
+// ValueDeclaration represents a const or var declaration
+type ValueDeclaration interface {
+	IsConst() bool
 	Name() Ident
 	Type() TypeDefinition
-	Tag()  reflect.StructTag
+	Value() ast.Expr // TODO: deal with this
 }
+
+type FuncDeclaration interface {
+	// Receiver returns the receiver for this function, if it's a method.
+	// A nil typedefinition indicates no receiver (a method)
+	Receiver() (Ident, TypeDefinition)
+	Name() Ident
+	Type() FuncTypeDefinition
+	Body() *ast.BlockStmt // TODO: deal with this
+}
+
+// Type Definitions
 
 // TypeDefinition represents some type in Go.
 // It may be a:
@@ -101,6 +92,7 @@ type ArrayTypeDefinition interface {
 	// Length is the length of the array.
 	// A nil length length represents a slice,
 	// and a length of AutoLength represents `[...]T`.
+	// TODO: fix this so that we can represent constant expressions here
 	Length() *int
 }
 type SplatTypeDefinition interface {
@@ -115,4 +107,50 @@ type ChanTypeDefinition interface {
 }
 type PointerTypeDefinition interface {
 	ReferentType() TypeDefinition
+}
+
+// Other types
+
+type Import interface {
+	Name() Ident
+	Path() string
+}
+
+type AST interface {
+	PackageName() Ident
+	Types() []TypeDeclaration
+	Funcs() []FuncDeclaration
+	Values() []ValueDeclaration
+	Imports() []Import
+}
+
+// +basicimpl:skip
+type TypeIdent interface {
+	LocateType() TypeDefinition
+	Ident
+}
+
+// Ident is a bare identifier
+// +basicimpl:skip
+type Ident interface {
+	Name() string
+}
+
+// QualifiedIdent is an identifier qualified by a package name
+// +basicimpl:skip
+type QualifiedIdent interface {
+	Ident
+	PackageName() string
+}
+// TODO: capture underlying object as well for convinience?
+
+// +basicimpl:skip
+type Doced interface {
+	Doc() []string
+}
+
+type Field interface {
+	Name() Ident
+	Type() TypeDefinition
+	Tag()  reflect.StructTag
 }

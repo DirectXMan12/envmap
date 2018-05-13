@@ -4,14 +4,12 @@ import (
 	"go/ast"
 )
 
+// TODO: do we need the anonymous ident any more?
 type anonIdent struct{}
 func (i anonIdent) Name() string { return "" }
 
 type unqualifiedIdent string
 func (i unqualifiedIdent) Name() string { return string(i) }
-func (i unqualifiedIdent) ToRawNode() interface{} {
-	return &ast.Ident{Name: string(i)}
-}
 
 type qualifiedIdent struct {
 	packageName string
@@ -20,12 +18,6 @@ type qualifiedIdent struct {
 
 func (i qualifiedIdent) PackageName() string {
 	return i.packageName
-}
-func (i qualifiedIdent) ToRawNode() interface{} {
-	return &ast.SelectorExpr{
-		X: &ast.Ident{Name: i.packageName},
-		Sel: &ast.Ident{Name: i.Name()},
-	}
 }
 
 type typeIdent struct {

@@ -8,7 +8,6 @@ import (
 	"go/parser"
 	"go/token"
 	"go/build"
-	"go/format"
 )
 
 // Loader knows how to load ASTs from files, directories, or arbitrary text streams.
@@ -22,17 +21,6 @@ type Loader interface {
 	// Files returns the parsed ASTs.  Do not call further
 	// parse functions until this returns.
 	Files() []*ast.File
-}
-
-type Dumper interface {
-	// Format formats the given "node" (as per "go/format".Node),
-	// writing the result to dst.
-	Format(dst io.Writer, node interface{}) error
-}
-
-type Manipulator interface {
-	Loader
-	Dumper
 }
 
 // fileLoader loads content into a set of ast.Files, for use later.
@@ -121,12 +109,8 @@ func (f *fileLoader) Files() []*ast.File {
 	return f.files
 }
 
-func (f *fileLoader) Format(dst io.Writer, node interface{}) error {
-	return format.Node(dst, f.fileSet, node)
-}
-
 // NewLoader returns a new Loader which can parse files concurrently.
-func NewLoader() Manipulator {
+func NewLoader() Loader {
 	loader := &fileLoader{
 		fileSet: token.NewFileSet(),
 		buildContext: build.Default,

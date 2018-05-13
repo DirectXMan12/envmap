@@ -7,7 +7,7 @@ import (
 
 // FromArgs is a convinience function to create a new loader, and populate
 // it from a set of passed-in command-line arguments.  Loading is done in parallel.
-func FromArgs(args []string) (Manipulator, []error) {
+func FromArgs(args []string) (Loader, []error) {
 	loader := NewLoader()
 	if len(args) == 0 {
 		// load from stdin

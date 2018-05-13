@@ -31,15 +31,6 @@ func extractCommentGroup(cg *ast.CommentGroup) []string {
 	return res
 }
 
-// Declarations to support:
-// - [ ] import (gen)
-// - [ ] constant (gen)
-// - [x] type (gen)
-// - [ ] variable (gen)
-// - [ ] bad?
-// - [ ] declstmt?
-// - [ ] func
-
 type typeDeclaration struct {
 	decl *ast.GenDecl
 	spec *ast.TypeSpec
@@ -66,13 +57,68 @@ func (d *typeDeclaration) Type() TypeDefinition {
 	return exprToTypeDefinition(d.spec.Type)
 }
 
-func (d *typeDeclaration) ToRawNode() interface{} {
-	// we can't just use the underlying decl,
-	// because it might have been shared, so
-	// construct a new one (losing the grouping)
-	return &ast.GenDecl{
-		Doc: d.decl.Doc,
-		Tok: token.TYPE,
-		Specs: []ast.Spec{d.spec},
+type valueDeclaration struct {
+	decl *ast.GenDecl
+	spec *ast.ValueSpec
+	name *ast.Ident
+	value ast.Expr
+}
+
+func (d *valueDeclaration) IsConst() bool {
+	return d.decl.Tok == token.CONST
+}
+
+func (d *valueDeclaration) Name() Ident {
+	return unqualifiedIdent(d.name.Name)
+}
+
+func (d *valueDeclaration) Type() TypeDefinition {
+	return exprToTypeDefinition(d.spec.Type)
+}
+
+func (d *valueDeclaration) Doc() []string {
+	// TODO: figure out how to include line comments?
+	// TODO: separate declaration docs from spec docs?
+	return append(extractCommentGroup(d.decl.Doc), extractCommentGroup(d.spec.Doc)...)
+}
+ 
+func (d *valueDeclaration) Value() ast.Expr {
+	return d.value
+}
+
+type funcDeclaration struct {
+	decl *ast.FuncDecl
+}
+
+func (d *funcDeclaration) Receiver() (Ident, TypeDefinition) {
+	if d.decl.Recv == nil {
+		return nil, nil
 	}
+
+	names := d.decl.Recv.List[0].Names
+	typeDef := exprToTypeDefinition(d.decl.Recv.List[0].Type)
+
+	if names == nil {
+		return Anonymous, typeDef
+	}
+
+	return unqualifiedIdent(names[0].Name), typeDef
+}
+
+func (d *funcDeclaration) Name() Ident {
+	return unqualifiedIdent(d.decl.Name.Name)
+}
+
+func (d *funcDeclaration) Type() FuncTypeDefinition {
+	return &funcTypeDefinition{
+		typ: d.decl.Type,
+	}
+}
+
+func (d *funcDeclaration) Body() *ast.BlockStmt {
+	return d.decl.Body
+}
+
+func (d *funcDeclaration) Doc() []string {
+	return extractCommentGroup(d.decl.Doc)
 }
