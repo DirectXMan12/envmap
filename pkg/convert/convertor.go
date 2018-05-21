@@ -130,8 +130,7 @@ func (s *importSpec) Doc() []string {
 
 func (s *importSpec) Name() Ident {
 	if s.spec.Name == nil {
-		// TODO: is this really the right thing to return here?
-		return Anonymous
+		return nil
 	}
 	return NewIdent(s.spec.Name.Name)
 }

@@ -238,11 +238,11 @@ func (f *field) Doc() []string {
 	return extractCommentGroup(f.field.Doc)
 }
 
-// Name returns the name of the field, or Anonymous for
-// and anonymous field.
+// Name returns the name of the field, or nil for
+// an anonymous field.
 func (f *field) Name() Ident {
 	if f.name == nil {
-		return Anonymous
+		return nil
 	}
 
 	return unqualifiedIdent(f.name.Name)

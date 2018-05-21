@@ -99,7 +99,7 @@ func (d *funcDeclaration) Receiver() (Ident, TypeDefinition) {
 	typeDef := exprToTypeDefinition(d.decl.Recv.List[0].Type)
 
 	if names == nil {
-		return Anonymous, typeDef
+		return nil, typeDef
 	}
 
 	return unqualifiedIdent(names[0].Name), typeDef

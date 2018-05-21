@@ -208,7 +208,7 @@ func (b *ASTBuilder) FromFuncDeclaration(d convert.FuncDeclaration) ast.Decl {
 	var receiver *ast.FieldList
 	if recvName, recvType := d.Receiver(); recvType != nil {
 		var recvIdent []*ast.Ident
-		if recvName != convert.Anonymous {
+		if recvName != nil {
 			recvIdent = []*ast.Ident{b.FromIdent(recvName)}
 		}
 		receiver = &ast.FieldList{
@@ -296,7 +296,7 @@ func (b *ASTBuilder) FromField(f convert.Field) *ast.Field {
 		Type: b.FromTypeDefinition(f.Type()),
 	}
 	name := f.Name()
-	if name != convert.Anonymous {
+	if name != nil {
 		res.Names = []*ast.Ident{b.FromIdent(f.Name())}
 	}
 	tag := f.Tag()
@@ -388,7 +388,7 @@ func (b *ASTBuilder) FromSplatTypeDefinition(d convert.SplatTypeDefinition) ast.
 }
 
 func (b *ASTBuilder) FromIdent(i convert.Ident) *ast.Ident {
-	if i == convert.Anonymous {
+	if i == nil {
 		return nil
 	}
 	return &ast.Ident{Name: i.Name()}

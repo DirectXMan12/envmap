@@ -288,6 +288,7 @@ func Struct() *StructTypeBuilder { return &StructTypeBuilder{} }
 func (b *StructTypeBuilder) Fields() []convert.Field { return b.fields }
 
 func (b *StructTypeBuilder) Field(name string, typ convert.TypeDefinition, tag string) *StructTypeBuilder {
+	// TODO: field-level doc?
 	b.fields = append(b.fields, &builtField{
 		name: name,
 		typ: typ,
@@ -301,9 +302,12 @@ func Interface() *InterfaceTypeBuilder { return &InterfaceTypeBuilder{} }
 func (b *InterfaceTypeBuilder) Methods() []convert.Field { return b.methods }
 
 func (b *InterfaceTypeBuilder) Method(name string, typ convert.FuncTypeDefinition) *InterfaceTypeBuilder {
+	// TODO: method-level doc?
 	b.methods = append(b.methods, &builtField{
 		name: name,
 		typ: typ,
 	})
 	return b
 }
+
+// TODO: support for iota and groupings
