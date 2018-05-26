@@ -88,10 +88,11 @@ func (f *fileLoader) parse(name string, src interface{}) error {
 	f.waitForFiles.Add(1)
 
 	file, err := parser.ParseFile(f.fileSet, name, src, parser.ParseComments)
+	// always return files, even if there's an error, so we can get partial ASTs
+	f.fileChan <- file 
 	if err != nil {
 		return err
 	}
-	f.fileChan <- file
 	return nil
 }
 
